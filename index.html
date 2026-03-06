@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Budget Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      :root {
+        --bg-body: #f0f2f5;
+        --bg-card: #ffffff;
+        --text-main: #333333;
+        --text-sub: #666666;
+        --input-bg: #ffffff;
+        --input-border: #dddddd;
+        --accent: #d63384;
+        --accent-hover: #b92b71;
+        --info-box: #fff3f8;
+        --row-border: #eeeeee;
+        --grand-total-bg: #e8f5e9;
+        --grand-total-text: #198754;
+      }
+      [data-theme="dark"] {
+        --bg-body: #121212;
+        --bg-card: #1e1e1e;
+        --text-main: #e0e0e0;
+        --text-sub: #bbbbbb;
+        --input-bg: #2d2d2d;
+        --input-border: #444444;
+        --info-box: #2d1a24;
+        --row-border: #333333;
+        --grand-total-bg: #1b2e1c;
+        --grand-total-text: #81c784;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        display: flex;
+        justify-content: center;
+        padding: 10px; /* Reduced padding for mobile */
+        margin: 0;
+        transition: 0.3s;
+      }
+
+      .card {
+        background: var(--bg-card);
+        padding: 25px 15px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        max-width: 550px;
+        position: relative;
+        box-sizing: border-box;
+        margin-top: 20px;
+      }
+
+      .header-accent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 8px;
+        background: var(--accent);
+        border-radius: 20px 20px 0 0;
+      }
+
+      .theme-switch {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--info-box);
+        border: 1px solid var(--input-border);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: 0.3s;
+      }
+
+      h2 {
+        color: var(--accent);
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 1.5rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+        background-color: var(--input-bg);
+        color: var(--text-main);
+        font-size: 1rem;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 5px rgba(214, 51, 132, 0.2);
+      }
+
+      button.calculate-btn {
+        width: 100%;
+        padding: 15px;
+        background-color: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: 0.2s;
+      }
+
+      button.calculate-btn:hover {
+        background-color: var(--accent-hover);
+      }
+
+      .result {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid var(--row-border);
+        display: none;
+      }
+
+      .grand-total {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--grand-total-text);
+        text-align: center;
+        margin-top: 15px;
+        background: var(--grand-total-bg);
+        padding: 15px;
+        border-radius: 8px;
+        word-wrap: break-word; /* Prevent long numbers from breaking layout */
+      }
+
+      /* Responsive Table Style */
+      .table-container {
+        width: 100%;
+        overflow-x: auto; /* Enable horizontal scroll on small screens */
+        -webkit-overflow-scrolling: touch;
+        margin-top: 15px;
+        border-radius: 8px;
+      }
+
+      .breakdown-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 400px; /* Ensures table doesn't look squashed */
+      }
+
+      .breakdown-table th {
+        padding: 12px 10px;
+        border: 1px solid var(--row-border);
+        text-align: center; /* Header Rata Tengah */
+        font-weight: bold;
+        font-size: 0.85rem;
+      }
+
+      .breakdown-table td {
+        padding: 12px 10px;
+        border: 1px solid var(--row-border);
+        font-size: 0.85rem;
+        vertical-align: middle;
+      }
+
+      /* Agar teks di kolom kategori tetap di kiri, namun kolom lainnya di tengah */
+      .breakdown-table td:first-child {
+        text-align: left;
+      }
+
+      .breakdown-table td:nth-child(2),
+      .breakdown-table td:nth-child(3) {
+        text-align: center;
+      }
+
+      .percent-input {
+        width: 50px;
+        padding: 5px;
+        text-align: center;
+        border: 1px solid var(--accent);
+        border-radius: 4px;
+        background: var(--input-bg);
+        color: var(--text-main);
+        margin-bottom: 0; /* Remove bottom margin inside table */
+        display: inline-block;
+      }
+
+      /* Mobile Specific Adjustments */
+      @media (max-width: 480px) {
+        h2 {
+          font-size: 1.2rem;
+        }
+        .card {
+          padding: 20px 10px;
+        }
+        .grand-total {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="header-accent"></div>
+      <button class="theme-switch" onclick="toggleTheme()" id="themeBtn">
+        🌙
+      </button>
+
+      <h2>Wedding Planner</h2>
+
+      <div class="input-group">
+        <label>Select Currency:</label>
+        <select id="currencySelect" onchange="updateCurrencyUI()">
+          <option value="CNY" data-symbol="¥" data-locale="zh-CN">
+            CNY (Chinese Yuan)
+          </option>
+          <option value="IDR" data-symbol="Rp" data-locale="id-ID">
+            IDR (Rupiah)
+          </option>
+          <option value="USD" data-symbol="$" data-locale="en-US">
+            USD (Dollar)
+          </option>
+          <option value="SGD" data-symbol="S$" data-locale="en-SG">
+            SGD (Singapore Dollar)
+          </option>
+          <option value="ANY" data-symbol="¤" data-locale="en-US">
+            Other Currencies
+          </option>
+        </select>
+
+        <label id="monthlyLabel">Monthly Expenses (¥):</label>
+        <input
+          type="text"
+          id="monthlyInput"
+          placeholder="e.g., 5,000"
+          oninput="formatInputThousands(this)"
+          onkeydown="if (event.key === 'Enter') calculateBudget();"
+        />
+
+        <label>Wedding Experience Level:</label>
+        <select id="weddingLevel" onchange="calculateBudget()">
+          <option value="standard">Standard (Charming & Intimate)</option>
+          <option value="medium">Medium (Classic Elegance)</option>
+          <option value="premium">Premium (Grand Luxury)</option>
+        </select>
+      </div>
+
+      <button class="calculate-btn" onclick="calculateBudget()">
+        Calculate Estimated Budget
+      </button>
+
+      <div id="resultArea" class="result">
+        <div
+          id="levelDescription"
+          style="
+            font-style: italic;
+            color: var(--text-sub);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+          "
+        ></div>
+        <div class="grand-total" id="totalOutput"></div>
+
+        <div style="margin-top: 20px">
+          <p style="font-weight: bold; color: var(--accent); font-size: 0.9em">
+            Cost Allocation Breakdown:
+          </p>
+          <div class="table-container">
+            <table class="breakdown-table">
+              <thead>
+                <tr style="background: var(--info-box)">
+                  <th>Category</th>
+                  <th>%</th>
+                  <th id="tableEstLabel">Estimate ($)</th>
+                </tr>
+              </thead>
+              <tbody id="breakdownBody"></tbody>
+            </table>
+          </div>
+          <div
+            id="statusPercent"
+            style="
+              margin-top: 10px;
+              font-weight: bold;
+              text-align: right;
+              font-size: 0.8em;
+            "
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Kumpulan Data Inflasi (Bisa ditambah/ubah sesuai kebutuhan)
+      // Source: https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG
+      const inflationData = [
+        { year: 1981, rate: 12.4 },
+        { year: 1982, rate: 10.2 },
+        { year: 1983, rate: 8.7 },
+        { year: 1984, rate: 8.1 },
+        { year: 1985, rate: 6.8 },
+        { year: 1986, rate: 5.8 },
+        { year: 1987, rate: 5.7 },
+        { year: 1988, rate: 7.1 },
+        { year: 1989, rate: 6.9 },
+        { year: 1990, rate: 8.1 },
+        { year: 1991, rate: 9.0 },
+        { year: 1992, rate: 7.6 },
+        { year: 1993, rate: 7.1 },
+        { year: 1994, rate: 10.2 },
+        { year: 1995, rate: 9.1 },
+        { year: 1996, rate: 6.5 },
+        { year: 1997, rate: 5.6 },
+        { year: 1998, rate: 5.1 },
+        { year: 1999, rate: 3.0 },
+        { year: 2000, rate: 3.4 },
+        { year: 2001, rate: 3.8 },
+        { year: 2002, rate: 2.9 },
+        { year: 2003, rate: 3.0 },
+        { year: 2004, rate: 3.5 },
+        { year: 2005, rate: 4.1 },
+        { year: 2006, rate: 4.3 },
+        { year: 2007, rate: 4.8 },
+        { year: 2008, rate: 8.9 },
+        { year: 2009, rate: 2.9 },
+        { year: 2010, rate: 3.3 },
+        { year: 2011, rate: 4.8 },
+        { year: 2012, rate: 3.7 },
+        { year: 2013, rate: 2.7 },
+        { year: 2014, rate: 2.4 },
+        { year: 2015, rate: 1.4 },
+        { year: 2016, rate: 1.6 },
+        { year: 2017, rate: 2.3 },
+        { year: 2018, rate: 2.4 },
+        { year: 2019, rate: 2.2 },
+        { year: 2020, rate: 1.9 },
+        { year: 2021, rate: 3.5 },
+        { year: 2022, rate: 8.0 },
+        { year: 2023, rate: 5.9 },
+        { year: 2024, rate: 3.0 },
+      ];
+
+      // Fungsi otomatis menghitung rata-rata dari data di atas
+      function getAverageInflation() {
+        const total = inflationData.reduce((sum, item) => sum + item.rate, 0);
+        return total / inflationData.length / 100; // Mengembalikan dalam desimal (misal: 0.0531)
+      }
+
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top",
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener("mouseenter", Swal.stopTimer);
+          toast.addEventListener("mouseleave", Swal.resumeTimer);
+        },
+      });
+
+      let currentTotalTarget = 0;
+      let allocation = [
+        { name: "Catering", percent: 40 },
+        { name: "Venue", percent: 20 },
+        { name: "Decoration", percent: 15 },
+        { name: "Attire & Makeup", percent: 10 },
+        { name: "Souvenirs", percent: 5 },
+        { name: "Emergency Fund", percent: 10 },
+      ];
+
+      function toggleTheme() {
+        const body = document.body;
+        const btn = document.getElementById("themeBtn");
+        if (body.getAttribute("data-theme") === "dark") {
+          body.removeAttribute("data-theme");
+          btn.innerText = "🌙";
+        } else {
+          body.setAttribute("data-theme", "dark");
+          btn.innerText = "☀️";
+        }
+      }
+
+      function getCurrencyData() {
+        const sel = document.getElementById("currencySelect");
+        const opt = sel.options[sel.selectedIndex];
+        const val = sel.value;
+
+        // Jika user memilih 'Another Currency'
+        if (val === "ANY") {
+          return {
+            code: "USD", // Fallback code untuk formatting
+            symbol: "¤",
+            locale: "en-US",
+          };
+        }
+
+        return {
+          code: sel.value,
+          symbol: opt.getAttribute("data-symbol"),
+          locale: opt.getAttribute("data-locale"),
+        };
+      }
+
+      function updateCurrencyUI() {
+        const data = getCurrencyData();
+        document.getElementById("monthlyLabel").innerText =
+          `Monthly Expenses (${data.symbol}):`;
+        document.getElementById("tableEstLabel").innerText =
+          `Estimate (${data.symbol})`;
+
+        const input = document.getElementById("monthlyInput");
+        if (input.value) formatInputThousands(input);
+
+        if (currentTotalTarget > 0) renderResults();
+      }
+
+      function formatInputThousands(input) {
+        const data = getCurrencyData();
+        let val = input.value.replace(/[^0-9]/g, "");
+        if (val === "") return;
+        input.value = new Intl.NumberFormat(data.locale).format(val);
+      }
+
+      function formatValue(num) {
+        const data = getCurrencyData();
+        return new Intl.NumberFormat(data.locale, {
+          style: "currency",
+          currency: data.code,
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(num);
+      }
+
+      function calculateBudget() {
+        const inputStr = document.getElementById("monthlyInput").value;
+        const cleanValue = inputStr.replace(/[^0-9]/g, "");
+        const monthly = parseFloat(cleanValue);
+        const level = document.getElementById("weddingLevel").value;
+
+        const avgInflation = getAverageInflation(); // Rata-rata ~5.31%
+        let desc = "";
+
+        if (!monthly || monthly <= 0) {
+          Toast.fire({ icon: "warning", title: "Please enter a valid amount" });
+          return;
+        }
+
+        // 1. Hitung Standar (Akumulasi 3 Tahun dengan inflasi)
+        let totalStandard = 0;
+        let currentYearlyStandard = monthly * 12;
+        for (let i = 0; i < 3; i++) {
+          totalStandard += currentYearlyStandard;
+          currentYearlyStandard *= 1 + avgInflation;
+        }
+
+        // 2. Hitung Medium (Akumulasi 9 Tahun dengan inflasi)
+        let totalMedium = 0;
+        let currentYearlyMedium = monthly * 12;
+        for (let i = 0; i < 9; i++) {
+          totalMedium += currentYearlyMedium;
+          currentYearlyMedium *= 1 + avgInflation;
+        }
+
+        // 3. Hitung Premium (Akumulasi 15 Tahun dengan inflasi)
+        let totalPremium = 0;
+        let currentYearlyPremium = monthly * 12;
+        for (let i = 0; i < 15; i++) {
+          totalPremium += currentYearlyPremium;
+          currentYearlyPremium *= 1 + avgInflation;
+        }
+
+        if (level === "standard") {
+          currentTotalTarget = totalStandard;
+          desc =
+            "A cozy, heartfelt celebration focused on the warmth of family and close friends.";
+        } else if (level === "medium") {
+          currentTotalTarget = (totalStandard + totalPremium) / 2;
+          desc =
+            "A perfect blend of style and comfort with an elegant atmosphere and curated details.";
+        } else {
+          currentTotalTarget = totalPremium;
+          desc =
+            "An exquisite, high-end gala designed for a timeless experience and grand decor.";
+        }
+
+        document.getElementById("levelDescription").innerText = desc;
+        renderResults();
+
+        Toast.fire({
+          icon: "success",
+          title: "Calculation updated!",
+        });
+      }
+
+      function renderResults() {
+        document.getElementById("resultArea").style.display = "block";
+        document.getElementById("totalOutput").innerText =
+          `Total: ${formatValue(currentTotalTarget)}`;
+
+        let html = "";
+        allocation.forEach((item, index) => {
+          let nominal = (item.percent / 100) * currentTotalTarget;
+          html += `<tr>
+              <td>${item.name}</td>
+              <td style="text-align:center;">
+                  <input type="number" class="percent-input" value="${item.percent}" onchange="updatePercent(${index}, this.value)">
+              </td>
+              <td>${formatValue(nominal)}</td>
+            </tr>`;
+        });
+        document.getElementById("breakdownBody").innerHTML = html;
+        updateStatusLabel();
+      }
+
+      function updatePercent(index, val) {
+        allocation[index].percent = parseFloat(val) || 0;
+        renderResults();
+      }
+
+      function updateStatusLabel() {
+        const total = allocation.reduce((sum, i) => sum + i.percent, 0);
+        const el = document.getElementById("statusPercent");
+        el.style.color = total === 100 ? "var(--grand-total-text)" : "#ff9800";
+        el.innerText =
+          total === 100
+            ? "✅ Perfect 100%"
+            : `⚠️ Total: ${total}% (Remains ${100 - total}%)`;
+      }
+    </script>
+  </body>
+</html>
