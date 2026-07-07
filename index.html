@@ -22,6 +22,9 @@
         --row-border: #eeeeee;
         --grand-total-bg: #e8f5e9;
         --grand-total-text: #198754;
+        --danger: #dc3545;
+        --danger-hover: #bd2130;
+        --sub-row-bg: #fafafa;
       }
       [data-theme="dark"] {
         --bg-body: #121212;
@@ -34,6 +37,7 @@
         --row-border: #333333;
         --grand-total-bg: #1b2e1c;
         --grand-total-text: #81c784;
+        --sub-row-bg: #252525;
       }
 
       body {
@@ -42,7 +46,7 @@
         color: var(--text-main);
         display: flex;
         justify-content: center;
-        padding: 10px; /* Reduced padding for mobile */
+        padding: 10px;
         margin: 0;
         transition: 0.3s;
       }
@@ -53,7 +57,7 @@
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         width: 100%;
-        max-width: 550px;
+        max-width: 650px;
         position: relative;
         box-sizing: border-box;
         margin-top: 20px;
@@ -100,8 +104,7 @@
         font-size: 0.9rem;
       }
 
-      input,
-      select {
+      input {
         width: 100%;
         padding: 12px;
         border: 1px solid var(--input-border);
@@ -113,35 +116,43 @@
         font-size: 1rem;
       }
 
-      input:focus,
-      select:focus {
+      input:focus {
         outline: none;
         border-color: var(--accent);
         box-shadow: 0 0 5px rgba(214, 51, 132, 0.2);
       }
 
-      button.calculate-btn {
-        width: 100%;
-        padding: 15px;
-        background-color: var(--accent);
-        color: white;
+      button {
+        padding: 12px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
         font-weight: bold;
-        font-size: 1.1rem;
         transition: 0.2s;
       }
 
-      button.calculate-btn:hover {
-        background-color: var(--accent-hover);
+      button.add-sub-btn {
+        background-color: var(--accent);
+        color: white;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+
+      button.delete-btn {
+        background-color: transparent;
+        color: var(--danger);
+        padding: 2px 6px;
+        font-size: 0.9rem;
+      }
+      button.delete-btn:hover {
+        color: var(--danger-hover);
       }
 
       .result {
-        margin-top: 25px;
-        padding-top: 20px;
-        border-top: 2px solid var(--row-border);
-        display: none;
+        margin-top: 5px;
+        padding-top: 10px;
       }
 
       .grand-total {
@@ -149,17 +160,16 @@
         font-weight: bold;
         color: var(--grand-total-text);
         text-align: center;
-        margin-top: 15px;
+        margin-top: 5px;
         background: var(--grand-total-bg);
         padding: 15px;
         border-radius: 8px;
-        word-wrap: break-word; /* Prevent long numbers from breaking layout */
+        word-wrap: break-word;
       }
 
-      /* Responsive Table Style */
       .table-container {
         width: 100%;
-        overflow-x: auto; /* Enable horizontal scroll on small screens */
+        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin-top: 15px;
         border-radius: 8px;
@@ -168,47 +178,119 @@
       .breakdown-table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 400px; /* Ensures table doesn't look squashed */
+        min-width: 520px;
       }
 
       .breakdown-table th {
         padding: 12px 10px;
         border: 1px solid var(--row-border);
-        text-align: center; /* Header Rata Tengah */
+        text-align: center;
         font-weight: bold;
         font-size: 0.85rem;
       }
 
       .breakdown-table td {
-        padding: 12px 10px;
+        padding: 10px;
         border: 1px solid var(--row-border);
         font-size: 0.85rem;
         vertical-align: middle;
       }
 
-      /* Agar teks di kolom kategori tetap di kiri, namun kolom lainnya di tengah */
-      .breakdown-table td:first-child {
-        text-align: left;
+      .main-category-row {
+        background-color: var(--info-box);
+        font-weight: bold;
       }
 
-      .breakdown-table td:nth-child(2),
-      .breakdown-table td:nth-child(3) {
-        text-align: center;
+      .category-name-input {
+        background: transparent;
+        border: 1px dashed transparent;
+        color: var(--text-main);
+        font-weight: bold;
+        padding: 4px;
+        margin-bottom: 0;
+        width: 90%;
+        border-radius: 4px;
+      }
+      .category-name-input:focus {
+        background: var(--input-bg);
+        border-color: var(--accent);
+      }
+
+      .sub-item-row {
+        background-color: var(--sub-row-bg);
+      }
+
+      .sub-item-row td:first-child {
+        padding-left: 25px;
+        color: var(--text-sub);
+        font-style: italic;
       }
 
       .percent-input {
-        width: 50px;
-        padding: 5px;
+        width: 85px;
+        padding: 6px;
         text-align: center;
-        border: 1px solid var(--accent);
+        border: 1px solid var(--input-border);
         border-radius: 4px;
         background: var(--input-bg);
         color: var(--text-main);
-        margin-bottom: 0; /* Remove bottom margin inside table */
-        display: inline-block;
+        margin-bottom: 0;
       }
 
-      /* Mobile Specific Adjustments */
+      .inline-add-form {
+        display: flex;
+        gap: 5px;
+        background-color: var(--sub-row-bg);
+        padding: 6px 10px;
+        border: 1px solid var(--row-border);
+        border-top: none;
+        align-items: center;
+      }
+
+      .inline-add-form label {
+        margin-bottom: 0;
+        font-size: 0.8rem;
+        color: var(--text-sub);
+        padding-left: 15px;
+        white-space: nowrap;
+      }
+
+      .inline-add-form input {
+        margin-bottom: 0;
+        padding: 6px;
+        font-size: 0.8rem;
+        border-radius: 4px;
+      }
+
+      .global-add-form {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px dashed var(--input-border);
+      }
+      .global-add-inputs {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .global-add-inputs input {
+        margin-bottom: 0;
+      }
+      .global-add-btn {
+        background-color: #198754;
+        color: white;
+        white-space: nowrap;
+      }
+      .global-add-btn:hover {
+        background-color: #157347;
+      }
+
+      .status-flex {
+        margin-top: 12px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        text-align: right;
+      }
+
       @media (max-width: 480px) {
         h2 {
           font-size: 1.2rem;
@@ -218,6 +300,9 @@
         }
         .grand-total {
           font-size: 1rem;
+        }
+        .global-add-inputs {
+          flex-direction: column;
         }
       }
     </style>
@@ -229,167 +314,100 @@
         🌙
       </button>
 
-      <h2>Wedding Planner</h2>
+      <h2>Wedding Budget Planner</h2>
 
       <div class="input-group">
-        <label>Select Currency:</label>
-        <select id="currencySelect" onchange="updateCurrencyUI()">
-          <option value="CNY" data-symbol="¥" data-locale="zh-CN">
-            CNY (Chinese Yuan)
-          </option>
-          <option value="IDR" data-symbol="Rp" data-locale="id-ID">
-            IDR (Rupiah)
-          </option>
-          <option value="USD" data-symbol="$" data-locale="en-US">
-            USD (Dollar)
-          </option>
-          <option value="SGD" data-symbol="S$" data-locale="en-SG">
-            SGD (Singapore Dollar)
-          </option>
-          <option value="ANY" data-symbol="¤" data-locale="en-US">
-            Other Currencies
-          </option>
-        </select>
-
-        <label id="monthlyLabel">Monthly Expenses (¥):</label>
+        <label id="budgetLabel">Total Wedding Budget:</label>
         <input
           type="text"
-          id="monthlyInput"
-          placeholder="e.g., 5,000"
-          oninput="formatInputThousands(this)"
-          onkeydown="if (event.key === 'Enter') calculateBudget();"
+          id="budgetInput"
+          placeholder=""
+          oninput="processBudgetLive(this)"
         />
-
-        <label>Wedding Experience Level:</label>
-        <select id="weddingLevel" onchange="calculateBudget()">
-          <option value="standard">Standard (Charming & Intimate)</option>
-          <option value="medium">Medium (Classic Elegance)</option>
-          <option value="premium">Premium (Grand Luxury)</option>
-        </select>
       </div>
 
-      <button class="calculate-btn" onclick="calculateBudget()">
-        Calculate Estimated Budget
-      </button>
-
       <div id="resultArea" class="result">
-        <div
-          id="levelDescription"
-          style="
-            font-style: italic;
-            color: var(--text-sub);
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-          "
-        ></div>
-        <div class="grand-total" id="totalOutput"></div>
+        <div class="grand-total" id="totalOutput">Total Budget: 0</div>
 
         <div style="margin-top: 20px">
-          <p style="font-weight: bold; color: var(--accent); font-size: 0.9em">
+          <p
+            style="
+              font-weight: bold;
+              color: var(--accent);
+              font-size: 0.95em;
+              margin-bottom: 5px;
+            "
+          >
             Cost Allocation Breakdown:
           </p>
+
           <div class="table-container">
             <table class="breakdown-table">
               <thead>
-                <tr style="background: var(--info-box)">
-                  <th>Category</th>
-                  <th>%</th>
-                  <th id="tableEstLabel">Estimate ($)</th>
+                <tr style="background: var(--row-border)">
+                  <th>Category / Sublist Item</th>
+                  <th style="width: 105px">%</th>
+                  <th style="width: 140px">Estimate</th>
+                  <th style="width: 70px">Action</th>
                 </tr>
               </thead>
               <tbody id="breakdownBody"></tbody>
             </table>
           </div>
-          <div
-            id="statusPercent"
-            style="
-              margin-top: 10px;
-              font-weight: bold;
-              text-align: right;
-              font-size: 0.8em;
-            "
-          ></div>
+
+          <div class="status-flex">
+            <div id="statusPercent"></div>
+          </div>
+
+          <div class="global-add-form">
+            <label style="color: var(--accent); font-weight: bold"
+              >+ Add New Category</label
+            >
+            <div class="global-add-inputs">
+              <input
+                type="text"
+                id="newMainCatName"
+                placeholder="e.g., Entertainment, Honeymoon"
+                style="flex-grow: 2"
+              />
+              <input
+                type="number"
+                id="newMainCatPercent"
+                placeholder="%"
+                style="max-width: 100px"
+                min="0"
+                max="100"
+                step="0.01"
+              />
+              <button class="global-add-btn" onclick="addNewMainCategory()">
+                Add Category
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-      // Kumpulan Data Inflasi (Bisa ditambah/ubah sesuai kebutuhan)
-      // Source: https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG
-      const inflationData = [
-        { year: 1981, rate: 12.4 },
-        { year: 1982, rate: 10.2 },
-        { year: 1983, rate: 8.7 },
-        { year: 1984, rate: 8.1 },
-        { year: 1985, rate: 6.8 },
-        { year: 1986, rate: 5.8 },
-        { year: 1987, rate: 5.7 },
-        { year: 1988, rate: 7.1 },
-        { year: 1989, rate: 6.9 },
-        { year: 1990, rate: 8.1 },
-        { year: 1991, rate: 9.0 },
-        { year: 1992, rate: 7.6 },
-        { year: 1993, rate: 7.1 },
-        { year: 1994, rate: 10.2 },
-        { year: 1995, rate: 9.1 },
-        { year: 1996, rate: 6.5 },
-        { year: 1997, rate: 5.6 },
-        { year: 1998, rate: 5.1 },
-        { year: 1999, rate: 3.0 },
-        { year: 2000, rate: 3.4 },
-        { year: 2001, rate: 3.8 },
-        { year: 2002, rate: 2.9 },
-        { year: 2003, rate: 3.0 },
-        { year: 2004, rate: 3.5 },
-        { year: 2005, rate: 4.1 },
-        { year: 2006, rate: 4.3 },
-        { year: 2007, rate: 4.8 },
-        { year: 2008, rate: 8.9 },
-        { year: 2009, rate: 2.9 },
-        { year: 2010, rate: 3.3 },
-        { year: 2011, rate: 4.8 },
-        { year: 2012, rate: 3.7 },
-        { year: 2013, rate: 2.7 },
-        { year: 2014, rate: 2.4 },
-        { year: 2015, rate: 1.4 },
-        { year: 2016, rate: 1.6 },
-        { year: 2017, rate: 2.3 },
-        { year: 2018, rate: 2.4 },
-        { year: 2019, rate: 2.2 },
-        { year: 2020, rate: 1.9 },
-        { year: 2021, rate: 3.5 },
-        { year: 2022, rate: 8.0 },
-        { year: 2023, rate: 5.9 },
-        { year: 2024, rate: 3.0 },
-      ];
-
-      // Fungsi otomatis menghitung rata-rata dari data di atas
-      function getAverageInflation() {
-        const total = inflationData.reduce((sum, item) => sum + item.rate, 0);
-        return total / inflationData.length / 100; // Mengembalikan dalam desimal (misal: 0.0531)
-      }
-
       const Toast = Swal.mixin({
         toast: true,
         position: "top",
         showConfirmButton: false,
-        timer: 5000,
+        timer: 2000,
         timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.addEventListener("mouseenter", Swal.stopTimer);
-          toast.addEventListener("mouseleave", Swal.resumeTimer);
-        },
       });
 
-      let currentTotalTarget = 0;
+      let currentTotalBudget = 0;
+
       let allocation = [
-        { name: "Catering", percent: 40 },
-        { name: "Venue", percent: 20 },
-        { name: "Decoration", percent: 15 },
-        { name: "Attire & Makeup", percent: 10 },
-        { name: "Souvenirs", percent: 5 },
-        { name: "Emergency Fund", percent: 10 },
+        { name: "Catering", percent: 40.0, subitems: [] },
+        { name: "Venue", percent: 20.0, subitems: [] },
+        { name: "Decoration", percent: 10.0, subitems: [] },
+        { name: "Attire & Makeup", percent: 10.0, subitems: [] },
+        { name: "Documentation", percent: 10.0, subitems: [] },
+        { name: "Souvenir", percent: 5.0, subitems: [] },
+        { name: "Emergency Fund", percent: 5.0, subitems: [] },
       ];
 
       function toggleTheme() {
@@ -404,152 +422,178 @@
         }
       }
 
-      function getCurrencyData() {
-        const sel = document.getElementById("currencySelect");
-        const opt = sel.options[sel.selectedIndex];
-        const val = sel.value;
-
-        // Jika user memilih 'Other Currencies'
-        if (val === "ANY") {
-          return {
-            code: "USD", // Fallback code untuk formatting
-            symbol: "¤",
-            locale: "en-US",
-          };
-        }
-
-        return {
-          code: sel.value,
-          symbol: opt.getAttribute("data-symbol"),
-          locale: opt.getAttribute("data-locale"),
-        };
-      }
-
-      function updateCurrencyUI() {
-        const data = getCurrencyData();
-        document.getElementById("monthlyLabel").innerText =
-          `Monthly Expenses (${data.symbol}):`;
-        document.getElementById("tableEstLabel").innerText =
-          `Estimate (${data.symbol})`;
-
-        const input = document.getElementById("monthlyInput");
-        if (input.value) formatInputThousands(input);
-
-        if (currentTotalTarget > 0) renderResults();
-      }
-
-      function formatInputThousands(input) {
-        const data = getCurrencyData();
-        let val = input.value.replace(/[^0-9]/g, "");
-        if (val === "") return;
-        input.value = new Intl.NumberFormat(data.locale).format(val);
-      }
-
       function formatValue(num) {
-        const data = getCurrencyData();
-        return new Intl.NumberFormat(data.locale, {
-          style: "currency",
-          currency: data.code,
+        return new Intl.NumberFormat("en-US", {
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         }).format(num);
       }
 
-      function calculateBudget() {
-        const inputStr = document.getElementById("monthlyInput").value;
-        const cleanValue = inputStr.replace(/[^0-9]/g, "");
-        const monthly = parseFloat(cleanValue);
-        const level = document.getElementById("weddingLevel").value;
-
-        const avgInflation = getAverageInflation(); // Rata-rata ~5.31%
-        let desc = "";
-
-        if (!monthly || monthly <= 0) {
-          Toast.fire({ icon: "warning", title: "Please enter a valid amount" });
+      function processBudgetLive(input) {
+        let val = input.value.replace(/[^0-9]/g, "");
+        if (val === "") {
+          input.value = "";
+          currentTotalBudget = 0;
+          renderResults();
           return;
         }
 
-        // 1. Hitung Standar (Akumulasi 3 Tahun dengan inflasi)
-        let totalStandard = 0;
-        let currentYearlyStandard = monthly * 12;
-        for (let i = 0; i < 3; i++) {
-          totalStandard += currentYearlyStandard;
-          currentYearlyStandard *= 1 + avgInflation;
-        }
-
-        // 2. Hitung Medium (Akumulasi 9 Tahun dengan inflasi)
-        let totalMedium = 0;
-        let currentYearlyMedium = monthly * 12;
-        for (let i = 0; i < 9; i++) {
-          totalMedium += currentYearlyMedium;
-          currentYearlyMedium *= 1 + avgInflation;
-        }
-
-        // 3. Hitung Premium (Akumulasi 15 Tahun dengan inflasi)
-        let totalPremium = 0;
-        let currentYearlyPremium = monthly * 12;
-        for (let i = 0; i < 15; i++) {
-          totalPremium += currentYearlyPremium;
-          currentYearlyPremium *= 1 + avgInflation;
-        }
-
-        if (level === "standard") {
-          currentTotalTarget = totalStandard;
-          desc =
-            "A cozy, heartfelt celebration focused on the warmth of family and close friends.";
-        } else if (level === "medium") {
-          currentTotalTarget = (totalStandard + totalPremium) / 2;
-          desc =
-            "A perfect blend of style and comfort with an elegant atmosphere and curated details.";
-        } else {
-          currentTotalTarget = totalPremium;
-          desc =
-            "An exquisite, high-end gala designed for a timeless experience and grand decor.";
-        }
-
-        document.getElementById("levelDescription").innerText = desc;
+        input.value = new Intl.NumberFormat("en-US").format(val);
+        currentTotalBudget = parseFloat(val);
         renderResults();
-
-        Toast.fire({
-          icon: "success",
-          title: "Calculation updated!",
-        });
       }
 
       function renderResults() {
-        document.getElementById("resultArea").style.display = "block";
         document.getElementById("totalOutput").innerText =
-          `Total: ${formatValue(currentTotalTarget)}`;
+          `Total Budget: ${formatValue(currentTotalBudget)}`;
 
         let html = "";
-        allocation.forEach((item, index) => {
-          let nominal = (item.percent / 100) * currentTotalTarget;
-          html += `<tr>
-              <td>${item.name}</td>
-              <td style="text-align:center;">
-                  <input type="number" class="percent-input" value="${item.percent}" onchange="updatePercent(${index}, this.value)">
+        allocation.forEach((category, catIndex) => {
+          let catNominal = (category.percent / 100) * currentTotalBudget;
+
+          // Main Category
+          html += `<tr class="main-category-row">
+              <td>
+                <input type="text" class="category-name-input" value="${category.name}" onchange="updateCategoryName(${catIndex}, this.value)">
               </td>
-              <td>${formatValue(nominal)}</td>
+              <td style="text-align:center;">
+                  <input type="number" class="percent-input" value="${Number(category.percent).toFixed(2)}" min="0" max="100" step="0.01" onchange="updatePercent(${catIndex}, this.value)">
+              </td>
+              <td style="text-align:right; font-weight:bold;">${formatValue(catNominal)}</td>
+              <td style="text-align:center;">
+                  <button class="delete-btn" onclick="deleteMainCategory(${catIndex})" title="Delete Category" style="color: var(--danger)">🗑️</button>
+              </td>
+            </tr>`;
+
+          // Row Sub-item List
+          category.subitems.forEach((subitem, subIndex) => {
+            html += `<tr class="sub-item-row">
+                <td>└─ ${subitem.name}</td>
+                <td style="text-align:center; color:gray;">-</td>
+                <td style="text-align:center; color:gray; font-size:0.8rem;">Sub-item</td>
+                <td style="text-align:center;">
+                    <button class="delete-btn" onclick="deleteSubItem(${catIndex}, ${subIndex})" title="Delete Sublist Item">🗑️</button>
+                </td>
+              </tr>`;
+          });
+
+          // Add Sub-item Form
+          html += `<tr>
+              <td colspan="4" style="padding:0;">
+                <div class="inline-add-form">
+                  <label id="label-sub-${catIndex}">+ Add to ${category.name}:</label>
+                  <input type="text" id="input-sub-${catIndex}" placeholder="Add new item inside ${category.name}..." style="flex-grow:1; max-width:250px;">
+                  <button class="add-sub-btn" onclick="addNewSubItem(${catIndex})">+ Add Item</button>
+                </div>
+              </td>
             </tr>`;
         });
+
         document.getElementById("breakdownBody").innerHTML = html;
         updateStatusLabel();
       }
 
-      function updatePercent(index, val) {
-        allocation[index].percent = parseFloat(val) || 0;
+      // Edit Main Category Name
+      function updateCategoryName(index, newName) {
+        const trimmedName = newName.trim();
+        if (!trimmedName) {
+          Toast.fire({
+            icon: "warning",
+            title: "Category name cannot be empty",
+          });
+          renderResults();
+          return;
+        }
+        allocation[index].name = trimmedName;
         renderResults();
+      }
+
+      function updatePercent(index, val) {
+        let value = parseFloat(val);
+        if (isNaN(value) || value < 0) value = 0;
+        allocation[index].percent = value;
+        renderResults();
+      }
+
+      // Add Main Category Name
+      function addNewMainCategory() {
+        const nameInput = document.getElementById("newMainCatName");
+        const percentInput = document.getElementById("newMainCatPercent");
+
+        const catName = nameInput.value.trim();
+        let catPercent = parseFloat(percentInput.value);
+
+        if (!catName) {
+          Toast.fire({ icon: "warning", title: "Please enter category name" });
+          return;
+        }
+        if (isNaN(catPercent) || catPercent < 0) catPercent = 0;
+
+        allocation.push({
+          name: catName,
+          percent: catPercent,
+          subitems: [],
+        });
+
+        nameInput.value = "";
+        percentInput.value = "";
+        renderResults();
+        Toast.fire({
+          icon: "success",
+          title: `Category "${catName}" added successfully`,
+        });
+      }
+
+      // Delete Main Category Name
+      function deleteMainCategory(index) {
+        const removedName = allocation[index].name;
+        allocation.splice(index, 1);
+        renderResults();
+        Toast.fire({
+          icon: "success",
+          title: `Deleted "${removedName}" category`,
+        });
+      }
+
+      function addNewSubItem(catIndex) {
+        const inputEl = document.getElementById(`input-sub-${catIndex}`);
+        const subName = inputEl.value.trim();
+
+        if (!subName) {
+          Toast.fire({ icon: "warning", title: "Please enter item name" });
+          return;
+        }
+
+        allocation[catIndex].subitems.push({ name: subName });
+        inputEl.value = "";
+        renderResults();
+        Toast.fire({
+          icon: "success",
+          title: `Added "${subName}" to ${allocation[catIndex].name}`,
+        });
+      }
+
+      function deleteSubItem(catIndex, subIndex) {
+        const removedName = allocation[catIndex].subitems[subIndex].name;
+        allocation[catIndex].subitems.splice(subIndex, 1);
+        renderResults();
+        Toast.fire({ icon: "success", title: `Removed "${removedName}"` });
       }
 
       function updateStatusLabel() {
         const total = allocation.reduce((sum, i) => sum + i.percent, 0);
         const el = document.getElementById("statusPercent");
-        el.style.color = total === 100 ? "var(--grand-total-text)" : "#ff9800";
-        el.innerText =
-          total === 100
-            ? "✅ Perfect 100%"
-            : `⚠️ Total: ${total}% (Remains ${100 - total}%)`;
+
+        if (Math.abs(total - 100) < 0.001) {
+          el.style.color = "var(--grand-total-text)";
+          el.innerText = "✅ Total Allocation Perfect 100.00%";
+        } else {
+          el.style.color = "#ff9800";
+          el.innerText = `⚠️ Total Allocation: ${total.toFixed(2)}% (Remains ${(100 - total).toFixed(2)}%)`;
+        }
       }
+
+      renderResults();
     </script>
   </body>
 </html>
