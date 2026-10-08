@@ -456,7 +456,7 @@
           </div>
 
           <!-- Export Section -->
-          <div class="export-section no-export" data-html2canvas-ignore="true">
+          <div class="export-section">
             <label>Export Data:</label>
             <div class="export-buttons">
               <button onclick="exportCSV()">CSV</button>
@@ -533,7 +533,6 @@
           renderResults();
           return;
         }
-
         input.value = new Intl.NumberFormat("en-US").format(val);
         currentTotalBudget = parseFloat(val);
         renderResults();
@@ -548,7 +547,6 @@
         allocation.forEach((category, catIndex) => {
           let catNominal = (category.percent / 100) * currentTotalBudget;
 
-          // Main Category
           html += `<tr class="main-category-row">
               <td>
                 <input type="text" class="category-name-input" value="${category.name}" onchange="updateCategoryName(${catIndex}, this.value)">
@@ -562,7 +560,6 @@
               </td>
             </tr>`;
 
-          // Sub-item rows
           category.subitems.forEach((subitem, subIndex) => {
             html += `<tr class="sub-item-row">
                 <td>└─ ${subitem.name}</td>
@@ -574,8 +571,7 @@
               </tr>`;
           });
 
-          // Add Sub-item Form
-          html += `<tr>
+          html += `<tr class="add-row">
               <td colspan="4" style="padding:0;">
                 <div class="inline-add-form">
                   <label id="label-sub-${catIndex}">+ Add to ${category.name}:</label>
@@ -625,12 +621,7 @@
         }
         if (isNaN(catPercent) || catPercent < 0) catPercent = 0;
 
-        allocation.push({
-          name: catName,
-          percent: catPercent,
-          subitems: [],
-        });
-
+        allocation.push({ name: catName, percent: catPercent, subitems: [] });
         nameInput.value = "";
         percentInput.value = "";
         renderResults();
@@ -653,12 +644,10 @@
       function addNewSubItem(catIndex) {
         const inputEl = document.getElementById(`input-sub-${catIndex}`);
         const subName = inputEl.value.trim();
-
         if (!subName) {
           Toast.fire({ icon: "warning", title: "Please enter item name" });
           return;
         }
-
         allocation[catIndex].subitems.push({ name: subName });
         inputEl.value = "";
         renderResults();
@@ -678,7 +667,6 @@
       function updateStatusLabel() {
         const total = allocation.reduce((sum, i) => sum + i.percent, 0);
         const el = document.getElementById("statusPercent");
-
         if (Math.abs(total - 100) < 0.001) {
           el.style.color = "var(--grand-total-text)";
           el.innerText = "✅ Total Allocation Perfect 100.00%";
@@ -688,7 +676,10 @@
         }
       }
 
-      // --- Export Helpers ---
+      // ================================================================
+      // EXPORT HELPERS
+      // ================================================================
+
       function getExportData() {
         return {
           totalBudget: currentTotalBudget,
@@ -701,19 +692,109 @@
         };
       }
 
+      // --- Build a clean HTML string for image/PDF/SVG exports ---
+      function buildCleanExportHTML() {
+        const totalPercent = allocation.reduce((sum, i) => sum + i.percent, 0);
+        const isPerfect = Math.abs(totalPercent - 100) < 0.001;
+
+        let rows = "";
+        allocation.forEach((category) => {
+          const catNominal = (category.percent / 100) * currentTotalBudget;
+
+          rows += `
+            <tr style="background:#eef2ff; font-weight:bold;">
+              <td style="padding:10px 12px; border:1px solid #d7dce5; color:#1f2937;">${escapeHtml(category.name)}</td>
+              <td style="padding:10px 12px; border:1px solid #d7dce5; text-align:center; color:#1f2937;">${Number(category.percent).toFixed(2)}%</td>
+              <td style="padding:10px 12px; border:1px solid #d7dce5; text-align:right; color:#1f2937;">${formatValue(catNominal)}</td>
+            </tr>`;
+
+          category.subitems.forEach((sub) => {
+            rows += `
+              <tr style="background:#fafbfe;">
+                <td style="padding:8px 12px 8px 32px; border:1px solid #d7dce5; color:#6b7280; font-style:italic;">└─ ${escapeHtml(sub.name)}</td>
+                <td style="padding:8px 12px; border:1px solid #d7dce5; text-align:center; color:#9ca3af;">–</td>
+                <td style="padding:8px 12px; border:1px solid #d7dce5; text-align:center; color:#9ca3af; font-size:12px;">Sub-item</td>
+              </tr>`;
+          });
+        });
+
+        const statusColor = isPerfect ? "#059669" : "#d97706";
+        const statusText = isPerfect
+          ? "✅ Total Allocation: 100.00%"
+          : `⚠️ Total Allocation: ${totalPercent.toFixed(2)}% (Remaining: ${(100 - totalPercent).toFixed(2)}%)`;
+
+        return `
+          <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#ffffff; width:720px; padding:32px; box-sizing:border-box; color:#1f2937;">
+            <div style="height:8px; background:linear-gradient(90deg,#4f46e5,#0d9488); border-radius:8px 8px 0 0; margin:-32px -32px 24px -32px;"></div>
+            <h1 style="color:#4f46e5; text-align:center; margin:0 0 18px 0; font-size:24px;">Budget Planner</h1>
+            <div style="background:#ecfdf5; color:#059669; font-size:18px; font-weight:bold; text-align:center; padding:16px; border-radius:8px; margin-bottom:24px;">
+              Total Budget: ${formatValue(currentTotalBudget)}
+            </div>
+            <h3 style="color:#4f46e5; margin:0 0 12px 0; font-size:15px;">Budget Allocation Breakdown</h3>
+            <table style="width:100%; border-collapse:collapse; font-size:14px; border-radius:8px; overflow:hidden;">
+              <thead>
+                <tr style="background:#e8ebf2;">
+                  <th style="padding:12px; border:1px solid #d7dce5; text-align:left; color:#1f2937;">Category / Sub-item</th>
+                  <th style="padding:12px; border:1px solid #d7dce5; text-align:center; width:90px; color:#1f2937;">%</th>
+                  <th style="padding:12px; border:1px solid #d7dce5; text-align:right; width:140px; color:#1f2937;">Estimate</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <div style="text-align:right; margin-top:18px; font-weight:bold; color:${statusColor}; font-size:14px;">
+              ${statusText}
+            </div>
+            <div style="text-align:center; margin-top:32px; font-size:12px; color:#9ca3af; border-top:1px dashed #d7dce5; padding-top:16px;">
+              Generated by Budget Planner &middot; ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            </div>
+          </div>
+        `;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // --- Create an off-screen container with clean export HTML ---
+      function withCleanContainer(callback) {
+        const container = document.createElement("div");
+        container.style.position = "fixed";
+        container.style.left = "-10000px";
+        container.style.top = "0";
+        container.style.background = "#ffffff";
+        container.innerHTML = buildCleanExportHTML();
+        document.body.appendChild(container);
+
+        const target = container.firstElementChild;
+
+        // Give the browser a frame to render
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            callback(target, () => {
+              if (container.parentNode) document.body.removeChild(container);
+            });
+          }, 60);
+        });
+      }
+
       // --- CSV Export ---
       function exportCSV() {
         const data = getExportData();
-        let csv = "Category,Percent,Estimate,Subitems\n";
+        let csv = "Category,Percent,Estimate,Sub-items\n";
         data.allocation.forEach((cat) => {
           const subitems = cat.subitems.join("; ");
-          const row = [
-            `"${cat.name.replace(/"/g, '""')}"`,
-            cat.percent.toFixed(2),
-            cat.estimate.toFixed(2),
-            `"${subitems.replace(/"/g, '""')}"`,
-          ].join(",");
-          csv += row + "\n";
+          csv +=
+            [
+              `"${cat.name.replace(/"/g, '""')}"`,
+              cat.percent.toFixed(2),
+              cat.estimate.toFixed(2),
+              `"${subitems.replace(/"/g, '""')}"`,
+            ].join(",") + "\n";
         });
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
@@ -728,9 +809,9 @@
         const data = getExportData();
         const rows = data.allocation.map((cat) => ({
           Category: cat.name,
-          Percent: cat.percent,
+          "Percent (%)": cat.percent,
           Estimate: cat.estimate,
-          Subitems: cat.subitems.join("; "),
+          "Sub-items": cat.subitems.join("; "),
         }));
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
@@ -752,100 +833,118 @@
         Toast.fire({ icon: "success", title: "JSON downloaded" });
       }
 
-      // --- Image Capture Helper ---
-      function captureCard(callback) {
-        const card = document.querySelector(".card");
-        const exportSection = document.querySelector(".export-section");
-        const originalDisplay = exportSection.style.display;
-        exportSection.style.display = "none";
-        html2canvas(card, { scale: 2, backgroundColor: null })
-          .then((canvas) => {
-            exportSection.style.display = originalDisplay || "block";
-            callback(canvas);
-          })
-          .catch((error) => {
-            console.error(error);
-            exportSection.style.display = originalDisplay || "block";
-            Toast.fire({ icon: "error", title: "Capture failed" });
-          });
-      }
-
       // --- PNG Export ---
       function exportPNG() {
-        captureCard((canvas) => {
-          const link = document.createElement("a");
-          link.download = "budget-planner.png";
-          link.href = canvas.toDataURL("image/png");
-          link.click();
-          Toast.fire({ icon: "success", title: "PNG downloaded" });
+        withCleanContainer((target, cleanup) => {
+          html2canvas(target, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+          })
+            .then((canvas) => {
+              cleanup();
+              const link = document.createElement("a");
+              link.download = "budget-planner.png";
+              link.href = canvas.toDataURL("image/png");
+              link.click();
+              Toast.fire({ icon: "success", title: "PNG downloaded" });
+            })
+            .catch((err) => {
+              cleanup();
+              console.error(err);
+              Toast.fire({ icon: "error", title: "PNG export failed" });
+            });
         });
       }
 
       // --- JPG Export ---
       function exportJPG() {
-        captureCard((canvas) => {
-          const link = document.createElement("a");
-          link.download = "budget-planner.jpg";
-          link.href = canvas.toDataURL("image/jpeg", 0.9);
-          link.click();
-          Toast.fire({ icon: "success", title: "JPG downloaded" });
+        withCleanContainer((target, cleanup) => {
+          html2canvas(target, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+          })
+            .then((canvas) => {
+              cleanup();
+              const link = document.createElement("a");
+              link.download = "budget-planner.jpg";
+              link.href = canvas.toDataURL("image/jpeg", 0.92);
+              link.click();
+              Toast.fire({ icon: "success", title: "JPG downloaded" });
+            })
+            .catch((err) => {
+              cleanup();
+              console.error(err);
+              Toast.fire({ icon: "error", title: "JPG export failed" });
+            });
         });
       }
 
       // --- PDF Export ---
       function exportPDF() {
-        captureCard((canvas) => {
-          const imgData = canvas.toDataURL("image/png");
-          const { jsPDF } = window.jspdf;
-          const pdf = new jsPDF("p", "mm", "a4");
-          const imgWidth = 210; // A4 width in mm
-          const pageHeight = 297; // A4 height in mm
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          let heightLeft = imgHeight;
-          let position = 0;
+        withCleanContainer((target, cleanup) => {
+          html2canvas(target, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+          })
+            .then((canvas) => {
+              cleanup();
+              const imgData = canvas.toDataURL("image/png");
+              const { jsPDF } = window.jspdf;
+              const pdf = new jsPDF("p", "mm", "a4");
+              const pageWidth = 210;
+              const pageHeight = 297;
+              const imgWidth = pageWidth;
+              const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
+              let heightLeft = imgHeight;
+              let position = 0;
 
-          while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-          }
-          pdf.save("budget-planner.pdf");
-          Toast.fire({ icon: "success", title: "PDF downloaded" });
+              pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+              heightLeft -= pageHeight;
+
+              while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+              }
+              pdf.save("budget-planner.pdf");
+              Toast.fire({ icon: "success", title: "PDF downloaded" });
+            })
+            .catch((err) => {
+              cleanup();
+              console.error(err);
+              Toast.fire({ icon: "error", title: "PDF export failed" });
+            });
         });
       }
 
       // --- SVG Export ---
       function exportSVG() {
-        const card = document.querySelector(".card");
-        const exportSection = document.querySelector(".export-section");
-        const originalDisplay = exportSection.style.display;
-        exportSection.style.display = "none";
-
-        domtoimage
-          .toSvg(card, {
-            filter: (node) => {
-              return !(
-                node.classList && node.classList.contains("no-export")
-              );
-            },
-          })
-          .then((dataUrl) => {
-            const link = document.createElement("a");
-            link.download = "budget-planner.svg";
-            link.href = dataUrl;
-            link.click();
-            exportSection.style.display = originalDisplay || "block";
-            Toast.fire({ icon: "success", title: "SVG downloaded" });
-          })
-          .catch((error) => {
-            console.error("SVG export failed", error);
-            exportSection.style.display = originalDisplay || "block";
-            Toast.fire({ icon: "error", title: "SVG export failed" });
-          });
+        withCleanContainer((target, cleanup) => {
+          domtoimage
+            .toSvg(target, {
+              bgcolor: "#ffffff",
+              width: target.offsetWidth,
+              height: target.offsetHeight,
+            })
+            .then((dataUrl) => {
+              cleanup();
+              const link = document.createElement("a");
+              link.download = "budget-planner.svg";
+              link.href = dataUrl;
+              link.click();
+              Toast.fire({ icon: "success", title: "SVG downloaded" });
+            })
+            .catch((err) => {
+              cleanup();
+              console.error(err);
+              Toast.fire({ icon: "error", title: "SVG export failed" });
+            });
+        });
       }
 
       // --- Initial Render ---
