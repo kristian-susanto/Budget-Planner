@@ -257,6 +257,16 @@
         margin-bottom: 0;
       }
 
+      /* Hide spinner arrows on percent inputs */
+      .percent-input::-webkit-outer-spin-button,
+      .percent-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .percent-input {
+        -moz-appearance: textfield; /* Firefox */
+      }
+
       .inline-add-form {
         display: flex;
         gap: 5px;
@@ -447,7 +457,7 @@
                 style="max-width: 100px"
                 min="0"
                 max="100"
-                step="0.50"
+                step="0.5"
               />
               <button class="global-add-btn" onclick="addNewMainCategory()">
                 Add Category
@@ -552,7 +562,7 @@
                 <input type="text" class="category-name-input" value="${category.name}" onchange="updateCategoryName(${catIndex}, this.value)">
               </td>
               <td style="text-align:center;">
-                  <input type="number" class="percent-input" value="${Number(category.percent).toFixed(2)}" min="0" max="100" step="0.50" onchange="updatePercent(${catIndex}, this.value)">
+                  <input type="number" class="percent-input" value="${Number(category.percent).toFixed(2)}" min="0" max="100" step="0.5" onchange="updatePercent(${catIndex}, this.value)">
               </td>
               <td style="text-align:right; font-weight:bold;">${formatValue(catNominal)}</td>
               <td style="text-align:center;">
