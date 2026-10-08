@@ -3,41 +3,51 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wedding Budget Planner</title>
+    <title>Budget Planner</title>
     <link
       rel="icon"
-      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>"
     />
     <style>
       :root {
-        --bg-body: #f0f2f5;
+        --bg-body: #f4f6fb;
         --bg-card: #ffffff;
-        --text-main: #333333;
-        --text-sub: #666666;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
         --input-bg: #ffffff;
-        --input-border: #dddddd;
-        --accent: #d63384;
-        --accent-hover: #b92b71;
-        --info-box: #fff3f8;
-        --row-border: #eeeeee;
-        --grand-total-bg: #e8f5e9;
-        --grand-total-text: #198754;
+        --input-border: #d7dce5;
+        --accent: #4f46e5;
+        --accent-hover: #4338ca;
+        --info-box: #eef2ff;
+        --row-border: #e8ebf2;
+        --grand-total-bg: #ecfdf5;
+        --grand-total-text: #059669;
         --danger: #dc3545;
         --danger-hover: #bd2130;
-        --sub-row-bg: #fafafa;
+        --sub-row-bg: #fafbfe;
+        --success: #0d9488;
+        --success-hover: #0f766e;
       }
       [data-theme="dark"] {
-        --bg-body: #121212;
-        --bg-card: #1e1e1e;
-        --text-main: #e0e0e0;
-        --text-sub: #bbbbbb;
-        --input-bg: #2d2d2d;
-        --input-border: #444444;
-        --info-box: #2d1a24;
-        --row-border: #333333;
-        --grand-total-bg: #1b2e1c;
-        --grand-total-text: #81c784;
-        --sub-row-bg: #252525;
+        --bg-body: #0f1117;
+        --bg-card: #1a1d26;
+        --text-main: #e5e7eb;
+        --text-sub: #9ca3af;
+        --input-bg: #262a36;
+        --input-border: #3a4050;
+        --accent: #6366f1;
+        --accent-hover: #818cf8;
+        --info-box: #1e2235;
+        --row-border: #2b3040;
+        --grand-total-bg: #10261f;
+        --grand-total-text: #34d399;
+        --sub-row-bg: #20242f;
+        --success: #14b8a6;
+        --success-hover: #2dd4bf;
+      }
+
+      * {
+        -webkit-tap-highlight-color: transparent;
       }
 
       body {
@@ -48,7 +58,9 @@
         justify-content: center;
         padding: 10px;
         margin: 0;
-        transition: 0.3s;
+        min-height: 100vh;
+        box-sizing: border-box;
+        transition: background-color 0.3s, color 0.3s;
       }
 
       .card {
@@ -57,10 +69,11 @@
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
         width: 100%;
-        max-width: 650px;
+        max-width: 680px;
         position: relative;
         box-sizing: border-box;
         margin-top: 20px;
+        align-self: flex-start;
       }
 
       .header-accent {
@@ -69,7 +82,7 @@
         left: 0;
         width: 100%;
         height: 8px;
-        background: var(--accent);
+        background: linear-gradient(90deg, var(--accent), var(--success));
         border-radius: 20px 20px 0 0;
       }
 
@@ -88,6 +101,9 @@
         justify-content: center;
         font-size: 1rem;
         transition: 0.3s;
+      }
+      .theme-switch:hover {
+        transform: scale(1.08);
       }
 
       h2 {
@@ -119,7 +135,7 @@
       input:focus {
         outline: none;
         border-color: var(--accent);
-        box-shadow: 0 0 5px rgba(214, 51, 132, 0.2);
+        box-shadow: 0 0 5px rgba(79, 70, 229, 0.25);
       }
 
       button {
@@ -138,6 +154,9 @@
         font-size: 0.8rem;
         border-radius: 4px;
         white-space: nowrap;
+      }
+      button.add-sub-btn:hover {
+        background-color: var(--accent-hover);
       }
 
       button.delete-btn {
@@ -210,6 +229,7 @@
         margin-bottom: 0;
         width: 90%;
         border-radius: 4px;
+        font-size: 0.85rem;
       }
       .category-name-input:focus {
         background: var(--input-bg);
@@ -245,6 +265,7 @@
         border: 1px solid var(--row-border);
         border-top: none;
         align-items: center;
+        flex-wrap: wrap;
       }
 
       .inline-add-form label {
@@ -276,12 +297,12 @@
         margin-bottom: 0;
       }
       .global-add-btn {
-        background-color: #198754;
+        background-color: var(--success);
         color: white;
         white-space: nowrap;
       }
       .global-add-btn:hover {
-        background-color: #157347;
+        background-color: var(--success-hover);
       }
 
       .status-flex {
@@ -297,12 +318,23 @@
         }
         .card {
           padding: 20px 10px;
+          border-radius: 16px;
         }
         .grand-total {
           font-size: 1rem;
         }
         .global-add-inputs {
           flex-direction: column;
+        }
+        .global-add-inputs input {
+          max-width: none !important;
+        }
+        .inline-add-form input {
+          max-width: none !important;
+          flex-grow: 1;
+        }
+        .status-flex {
+          text-align: left;
         }
       }
     </style>
@@ -314,14 +346,14 @@
         🌙
       </button>
 
-      <h2>Wedding Budget Planner</h2>
+      <h2>Budget Planner</h2>
 
       <div class="input-group">
-        <label id="budgetLabel">Total Wedding Budget:</label>
+        <label id="budgetLabel">Total Budget:</label>
         <input
           type="text"
           id="budgetInput"
-          placeholder=""
+          placeholder="Enter your total budget"
           oninput="processBudgetLive(this)"
         />
       </div>
@@ -338,14 +370,14 @@
               margin-bottom: 5px;
             "
           >
-            Cost Allocation Breakdown:
+            Budget Allocation Breakdown:
           </p>
 
           <div class="table-container">
             <table class="breakdown-table">
               <thead>
                 <tr style="background: var(--row-border)">
-                  <th>Category / Sublist Item</th>
+                  <th>Category / Sub-item</th>
                   <th style="width: 105px">%</th>
                   <th style="width: 140px">Estimate</th>
                   <th style="width: 70px">Action</th>
@@ -367,7 +399,7 @@
               <input
                 type="text"
                 id="newMainCatName"
-                placeholder="e.g., Entertainment, Honeymoon"
+                placeholder="e.g., Education, Travel, Insurance"
                 style="flex-grow: 2"
               />
               <input
@@ -401,13 +433,14 @@
       let currentTotalBudget = 0;
 
       let allocation = [
-        { name: "Catering", percent: 40.0, subitems: [] },
-        { name: "Venue", percent: 20.0, subitems: [] },
-        { name: "Decoration", percent: 10.0, subitems: [] },
-        { name: "Attire & Makeup", percent: 10.0, subitems: [] },
-        { name: "Documentation", percent: 10.0, subitems: [] },
-        { name: "Souvenir", percent: 5.0, subitems: [] },
-        { name: "Emergency Fund", percent: 5.0, subitems: [] },
+        { name: "Housing & Rent", percent: 30.0, subitems: [] },
+        { name: "Food & Groceries", percent: 15.0, subitems: [] },
+        { name: "Transportation", percent: 10.0, subitems: [] },
+        { name: "Utilities & Bills", percent: 8.0, subitems: [] },
+        { name: "Savings & Investments", percent: 12.0, subitems: [] },
+        { name: "Health & Insurance", percent: 7.0, subitems: [] },
+        { name: "Entertainment & Leisure", percent: 8.0, subitems: [] },
+        { name: "Miscellaneous", percent: 10.0, subitems: [] },
       ];
 
       function toggleTheme() {
@@ -465,14 +498,14 @@
               </td>
             </tr>`;
 
-          // Row Sub-item List
+          // Sub-item rows
           category.subitems.forEach((subitem, subIndex) => {
             html += `<tr class="sub-item-row">
                 <td>└─ ${subitem.name}</td>
                 <td style="text-align:center; color:gray;">-</td>
                 <td style="text-align:center; color:gray; font-size:0.8rem;">Sub-item</td>
                 <td style="text-align:center;">
-                    <button class="delete-btn" onclick="deleteSubItem(${catIndex}, ${subIndex})" title="Delete Sublist Item">🗑️</button>
+                    <button class="delete-btn" onclick="deleteSubItem(${catIndex}, ${subIndex})" title="Delete Sub-item">🗑️</button>
                 </td>
               </tr>`;
           });
@@ -515,7 +548,7 @@
         renderResults();
       }
 
-      // Add Main Category Name
+      // Add Main Category
       function addNewMainCategory() {
         const nameInput = document.getElementById("newMainCatName");
         const percentInput = document.getElementById("newMainCatPercent");
@@ -544,7 +577,7 @@
         });
       }
 
-      // Delete Main Category Name
+      // Delete Main Category
       function deleteMainCategory(index) {
         const removedName = allocation[index].name;
         allocation.splice(index, 1);
