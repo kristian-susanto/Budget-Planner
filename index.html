@@ -312,6 +312,40 @@
         text-align: right;
       }
 
+      /* Export section */
+      .export-section {
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px dashed var(--input-border);
+        text-align: center;
+      }
+      .export-section label {
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 10px;
+      }
+      .export-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .export-buttons button {
+        background-color: var(--info-box);
+        color: var(--text-main);
+        border: 1px solid var(--input-border);
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .export-buttons button:hover {
+        background-color: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
       @media (max-width: 480px) {
         h2 {
           font-size: 1.2rem;
@@ -335,6 +369,10 @@
         }
         .status-flex {
           text-align: left;
+        }
+        .export-buttons button {
+          padding: 6px 10px;
+          font-size: 0.75rem;
         }
       }
     </style>
@@ -416,12 +454,33 @@
               </button>
             </div>
           </div>
+
+          <!-- Export Section -->
+          <div class="export-section no-export" data-html2canvas-ignore="true">
+            <label>Export Data:</label>
+            <div class="export-buttons">
+              <button onclick="exportCSV()">CSV</button>
+              <button onclick="exportXLSX()">XLSX</button>
+              <button onclick="exportJSON()">JSON</button>
+              <button onclick="exportPNG()">PNG</button>
+              <button onclick="exportJPG()">JPG</button>
+              <button onclick="exportPDF()">PDF</button>
+              <button onclick="exportSVG()">SVG</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js"></script>
+
     <script>
+      // --- SweetAlert Toast ---
       const Toast = Swal.mixin({
         toast: true,
         position: "top",
@@ -430,6 +489,7 @@
         timerProgressBar: true,
       });
 
+      // --- State ---
       let currentTotalBudget = 0;
 
       let allocation = [
@@ -443,6 +503,7 @@
         { name: "Miscellaneous", percent: 10.0, subitems: [] },
       ];
 
+      // --- Theme Toggle ---
       function toggleTheme() {
         const body = document.body;
         const btn = document.getElementById("themeBtn");
@@ -455,6 +516,7 @@
         }
       }
 
+      // --- Formatting ---
       function formatValue(num) {
         return new Intl.NumberFormat("en-US", {
           minimumFractionDigits: 0,
@@ -462,6 +524,7 @@
         }).format(num);
       }
 
+      // --- Live Budget Input ---
       function processBudgetLive(input) {
         let val = input.value.replace(/[^0-9]/g, "");
         if (val === "") {
@@ -476,6 +539,7 @@
         renderResults();
       }
 
+      // --- Render Table ---
       function renderResults() {
         document.getElementById("totalOutput").innerText =
           `Total Budget: ${formatValue(currentTotalBudget)}`;
@@ -526,7 +590,7 @@
         updateStatusLabel();
       }
 
-      // Edit Main Category Name
+      // --- CRUD Operations ---
       function updateCategoryName(index, newName) {
         const trimmedName = newName.trim();
         if (!trimmedName) {
@@ -548,7 +612,6 @@
         renderResults();
       }
 
-      // Add Main Category
       function addNewMainCategory() {
         const nameInput = document.getElementById("newMainCatName");
         const percentInput = document.getElementById("newMainCatPercent");
@@ -577,7 +640,6 @@
         });
       }
 
-      // Delete Main Category
       function deleteMainCategory(index) {
         const removedName = allocation[index].name;
         allocation.splice(index, 1);
@@ -626,6 +688,167 @@
         }
       }
 
+      // --- Export Helpers ---
+      function getExportData() {
+        return {
+          totalBudget: currentTotalBudget,
+          allocation: allocation.map((cat) => ({
+            name: cat.name,
+            percent: cat.percent,
+            estimate: (cat.percent / 100) * currentTotalBudget,
+            subitems: cat.subitems.map((s) => s.name),
+          })),
+        };
+      }
+
+      // --- CSV Export ---
+      function exportCSV() {
+        const data = getExportData();
+        let csv = "Category,Percent,Estimate,Subitems\n";
+        data.allocation.forEach((cat) => {
+          const subitems = cat.subitems.join("; ");
+          const row = [
+            `"${cat.name.replace(/"/g, '""')}"`,
+            cat.percent.toFixed(2),
+            cat.estimate.toFixed(2),
+            `"${subitems.replace(/"/g, '""')}"`,
+          ].join(",");
+          csv += row + "\n";
+        });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "budget-planner.csv";
+        link.click();
+        Toast.fire({ icon: "success", title: "CSV downloaded" });
+      }
+
+      // --- XLSX Export ---
+      function exportXLSX() {
+        const data = getExportData();
+        const rows = data.allocation.map((cat) => ({
+          Category: cat.name,
+          Percent: cat.percent,
+          Estimate: cat.estimate,
+          Subitems: cat.subitems.join("; "),
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Budget");
+        XLSX.writeFile(wb, "budget-planner.xlsx");
+        Toast.fire({ icon: "success", title: "XLSX downloaded" });
+      }
+
+      // --- JSON Export ---
+      function exportJSON() {
+        const data = getExportData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "budget-planner.json";
+        link.click();
+        Toast.fire({ icon: "success", title: "JSON downloaded" });
+      }
+
+      // --- Image Capture Helper ---
+      function captureCard(callback) {
+        const card = document.querySelector(".card");
+        const exportSection = document.querySelector(".export-section");
+        const originalDisplay = exportSection.style.display;
+        exportSection.style.display = "none";
+        html2canvas(card, { scale: 2, backgroundColor: null })
+          .then((canvas) => {
+            exportSection.style.display = originalDisplay || "block";
+            callback(canvas);
+          })
+          .catch((error) => {
+            console.error(error);
+            exportSection.style.display = originalDisplay || "block";
+            Toast.fire({ icon: "error", title: "Capture failed" });
+          });
+      }
+
+      // --- PNG Export ---
+      function exportPNG() {
+        captureCard((canvas) => {
+          const link = document.createElement("a");
+          link.download = "budget-planner.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+          Toast.fire({ icon: "success", title: "PNG downloaded" });
+        });
+      }
+
+      // --- JPG Export ---
+      function exportJPG() {
+        captureCard((canvas) => {
+          const link = document.createElement("a");
+          link.download = "budget-planner.jpg";
+          link.href = canvas.toDataURL("image/jpeg", 0.9);
+          link.click();
+          Toast.fire({ icon: "success", title: "JPG downloaded" });
+        });
+      }
+
+      // --- PDF Export ---
+      function exportPDF() {
+        captureCard((canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF("p", "mm", "a4");
+          const imgWidth = 210; // A4 width in mm
+          const pageHeight = 297; // A4 height in mm
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          let heightLeft = imgHeight;
+          let position = 0;
+
+          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+
+          while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+          pdf.save("budget-planner.pdf");
+          Toast.fire({ icon: "success", title: "PDF downloaded" });
+        });
+      }
+
+      // --- SVG Export ---
+      function exportSVG() {
+        const card = document.querySelector(".card");
+        const exportSection = document.querySelector(".export-section");
+        const originalDisplay = exportSection.style.display;
+        exportSection.style.display = "none";
+
+        domtoimage
+          .toSvg(card, {
+            filter: (node) => {
+              return !(
+                node.classList && node.classList.contains("no-export")
+              );
+            },
+          })
+          .then((dataUrl) => {
+            const link = document.createElement("a");
+            link.download = "budget-planner.svg";
+            link.href = dataUrl;
+            link.click();
+            exportSection.style.display = originalDisplay || "block";
+            Toast.fire({ icon: "success", title: "SVG downloaded" });
+          })
+          .catch((error) => {
+            console.error("SVG export failed", error);
+            exportSection.style.display = originalDisplay || "block";
+            Toast.fire({ icon: "error", title: "SVG export failed" });
+          });
+      }
+
+      // --- Initial Render ---
       renderResults();
     </script>
   </body>
