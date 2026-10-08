@@ -259,11 +259,14 @@
 
       /* Hide spinner arrows on percent inputs */
       .percent-input::-webkit-outer-spin-button,
-      .percent-input::-webkit-inner-spin-button {
+      .percent-input::-webkit-inner-spin-button,
+      #newMainCatPercent::-webkit-outer-spin-button,
+      #newMainCatPercent::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }
-      .percent-input {
+      .percent-input,
+      #newMainCatPercent {
         -moz-appearance: textfield; /* Firefox */
       }
 
